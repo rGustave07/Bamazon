@@ -16,21 +16,7 @@ connection.connect( err => {
     console.log(err)
   }
   // Beginning of connection to database
-  inquirer.prompt([
-    {
-      type: 'rawlist',
-      message: 'Would you like to BID or POST',
-      choices: ["POST", "BID"],
-      name: 'Intro'
-    }
-  ]).then((answer) => {
-      if (answer.Intro === 'POST'){
-        console.log("Posting!");
-        inquireAndAdd();
-      } else {
-        displayInventory();
-      }
-  });
+  initialization();
 });
 
 const displayInventory = () => {
@@ -96,5 +82,25 @@ const inquireAndAdd = () => {
     }
   ]).then(answer => {
         addItem(answer.productname, answer.productdept, answer.productprice, answer.quant);
+        console.log("\nSuccessfully Posted\n");
+        initialization();
   })
+}
+
+const initialization = () => {
+  inquirer.prompt([
+    {
+      type: 'rawlist',
+      message: 'Would you like to BID or POST',
+      choices: ["POST", "BID"],
+      name: 'Intro'
+    }
+  ]).then((answer) => {
+      if (answer.Intro === 'POST'){
+        console.log("Posting!");
+        inquireAndAdd();
+      } else {
+        displayInventory();
+      }
+  });
 }
