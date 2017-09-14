@@ -1,5 +1,5 @@
 const mysql = require('mysql');
-
+const inquirer = require('inquirer');
 let connection = mysql.createConnection({
   host: 'localhost',
   port: 3306,
@@ -15,8 +15,23 @@ connection.connect( err => {
   if (err){
     console.log(err)
   }
-  addItem('Macbook Pro', 'Electronics', 2250, 3);
-})
+  // Beginning of connection to database
+  inquirer.prompt([
+    {
+      type: 'rawlist',
+      message: 'Would you like to BID or POST',
+      choices: ["POST", "BID"],
+      name: 'Intro'
+    }
+  ]).then((answer) => {
+      if (answer.Intro === 'POST'){
+        console.log("Posting!");
+        inquireAndAdd();
+      } else {
+        displayInventory();
+      }
+  });
+});
 
 const displayInventory = () => {
     connection.query("SELECT item_id, product_name, price FROM inventory", (err, res) => {
@@ -28,10 +43,10 @@ const displayInventory = () => {
 };
 
 const addItem = (name, department, price, stock) => {
-    let sql = "INSERT INTO inventory SET ?";
-    let values = {product_name: name, department_name: department, price: price, stock_quantity: stock};
+    let sql = "INSERT INTO inventory(product_name, department_name, price, stock_quantity) VALUES ?";
+    let values = [[name, department, price, stock]];
 
-    connection.query(sql, values, (err, res) => {
+    connection.query(sql, [values], (err, res) => {
         if(err){
           console.log(err);
         };
@@ -39,3 +54,47 @@ const addItem = (name, department, price, stock) => {
         displayInventory();
     });
 };
+
+const inquireAndAdd = () => {
+  inquirer.prompt([
+    {
+      type: 'input',
+      message: 'Enter name of Product:',
+      name: 'productname'
+    },
+    {
+      type: 'input',
+      message: 'Enter Department/Category of Product:',
+      name: 'productdept'
+    },
+    {
+      type: 'input',
+      message: 'Enter a price',
+      name: 'productprice',
+      validate: input => {
+        if (input.isNaN){
+            console.log("\nMust provide Number");
+            return false;
+        }
+        else {
+          return true;
+        }
+      }
+    },
+    {
+      type: 'input',
+      message: 'Enter quantity',
+      name: 'quant',
+      validate: input => {
+        if (input.isNaN){
+            console.log("Must provide Number");
+            return false;
+        } else {
+            return true;
+        }
+      }
+    }
+  ]).then(answer => {
+        addItem(answer.productname, answer.productdept, answer.productprice, answer.quant);
+  })
+}
